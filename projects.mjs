@@ -1,0 +1,61 @@
+import { getStore } from "@netlify/blobs";
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Content-Type": "application/json",
+};
+
+export default async function handler(req, context) {
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
+
+  const store = getStore({ name: "projects", consistency: "strong" });
+  const url = new URL(req.url);
+
+  // Extract ID from path: /.netlify/functions/projects/SOME-ID
+  const parts = url.pathname.split("/").filter(Boolean);
+  const id = parts[parts.length - 1] !== "projects" ? parts[parts.length - 1] : null;
+
+  try {
+    if (req.method === "GET" && !id) {
+      const { blobs } = await store.list();
+      const projects = await Promise.all(
+        blobs.map(async (b) => {
+          const raw = await store.get(b.key);
+          return raw ? JSON.parse(raw) : null;
+        })
+      );
+      const sorted = projects
+        .filter(Boolean)
+        .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      return new Response(JSON.stringify(sorted), { status: 200, headers: CORS });
+    }
+
+    if (req.method === "POST") {
+      const body = await req.json();
+      const project = { ...body, id: crypto.randomUUID(), createdAt: Date.now(), updatedAt: Date.now() };
+      await store.set(project.id, JSON.stringify(project));
+      return new Response(JSON.stringify(project), { status: 201, headers: CORS });
+    }
+
+    if (req.method === "PUT" && id) {
+      const existing = await store.get(id);
+      if (!existing) return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: CORS });
+      const body = await req.json();
+      const updated = { ...JSON.parse(existing), ...body, id, updatedAt: Date.now() };
+      await store.set(id, JSON.stringify(updated));
+      return new Response(JSON.stringify(updated), { status: 200, headers: CORS });
+    }
+
+    if (req.method === "DELETE" && id) {
+      await store.delete(id);
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: CORS });
+    }
+
+    return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: CORS });
+  } catch (err) {
+    console.error("projects error:", err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+  }
+}
