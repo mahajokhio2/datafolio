@@ -1,0 +1,19 @@
+{
+  "name": "datafolio",
+  "version": "1.0.0",
+  "description": "Data analyst portfolio dashboard",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site - no build step needed'"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^7.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
