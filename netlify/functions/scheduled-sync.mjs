@@ -36,5 +36,5 @@ export default async function handler(req) {
 
 export const config = {
   schedule: "0 */6 * * *",
-  path: "/api/scheduled-sync",
+
 };
