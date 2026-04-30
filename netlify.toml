@@ -5,17 +5,27 @@
 [functions]
   node_bundler = "esbuild"
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = "/api/projects"
+  to = "/.netlify/functions/projects"
   status = 200
 
-[dev]
-  port = 8888
-  targetPort = 3000
+[[redirects]]
+  from = "/api/projects/*"
+  to = "/.netlify/functions/projects/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/github-sync"
+  to = "/.netlify/functions/github-sync"
+  status = 200
+
+[[redirects]]
+  from = "/api/claude"
+  to = "/.netlify/functions/claude-proxy"
+  status = 200
+
+[[redirects]]
+  from = "/api/settings"
+  to = "/.netlify/functions/settings"
+  status = 200

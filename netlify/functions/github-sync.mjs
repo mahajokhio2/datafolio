@@ -105,4 +105,3 @@ export default async function handler(req) {
   }
 }
 
-export const config = { path: "/api/github-sync" };
