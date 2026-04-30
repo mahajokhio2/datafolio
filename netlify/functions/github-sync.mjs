@@ -31,11 +31,13 @@ export default async function handler(req) {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: CORS });
 
-  let username, token;
-  try { ({ username, token } = await req.json()); }
-  catch { return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS }); }
+  const token = process.env.GITHUB_TOKEN;
+  const username = process.env.GITHUB_USERNAME;
 
-  if (!username || !token) return new Response(JSON.stringify({ error: "username and token required" }), { status: 400, headers: CORS });
+  if (!token || !username) return new Response(
+    JSON.stringify({ error: `Missing env vars — GITHUB_TOKEN: ${token ? "SET" : "MISSING"}, GITHUB_USERNAME: ${username ? "SET" : "MISSING"}. Add them in Netlify → Site configuration → Environment variables, then redeploy.` }),
+    { status: 500, headers: CORS }
+  );
 
   try {
     const user = await ghFetch(`/users/${username}`, token);
