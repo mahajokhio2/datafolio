@@ -35,16 +35,13 @@ export default async function handler(req) {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: CORS });
 
-  let username, token;
-  try {
-    ({ username, token } = await req.json());
-  } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: CORS });
-  }
+  const token = process.env.GITHUB_TOKEN;
+const username = process.env.GITHUB_USERNAME;
 
-  if (!username || !token) {
-    return new Response(JSON.stringify({ error: "username and token are required" }), { status: 400, headers: CORS });
-  }
+if (!token || !username) return new Response(
+  JSON.stringify({ error: "GITHUB_TOKEN and GITHUB_USERNAME not set in Netlify environment variables." }),
+  { status: 500, headers: CORS }
+);
 
   try {
     // 1. Verify user
